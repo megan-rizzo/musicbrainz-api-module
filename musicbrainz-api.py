@@ -2,78 +2,75 @@ import requests
 import time
 
 class MusicBrainzAPI:
-    BASE_URL = "https://musicbrainz.org/ws/2/"
-    HEADERS = {"User-Agent": "MusicApp/1.0 (your-email@example.com)"}
-    RATE_LIMIT_SECONDS = 1  # 1 second for anonymous users
+    BASE_URL = "https://musicbrainz.org/ws/2"
+    RATE_LIMIT_DELAY = 1  
 
     def __init__(self):
         self.last_request_time = 0
 
-    def _rate_limit(self):
+    def _rate_limited_request(self, endpoint, params):
         """
-        Ensures that requests comply with the API's rate limit.
+        Handles rate-limited API requests.
         """
+        # Wait if the last request was less than the rate limit delay
         elapsed_time = time.time() - self.last_request_time
-        if elapsed_time < self.RATE_LIMIT_SECONDS:
-            time.sleep(self.RATE_LIMIT_SECONDS - elapsed_time)
+        if elapsed_time < self.RATE_LIMIT_DELAY:
+            time.sleep(self.RATE_LIMIT_DELAY - elapsed_time)
+
+        # Perform the API request
+        response = requests.get(endpoint, params=params, headers={"User-Agent": "MusicBrainzAPI/1.0 (example@example.com)"})
         self.last_request_time = time.time()
 
-    def search_artist(self, artist_name, limit=5):
-        """
-        Search for an artist by name.
-        """
-        self._rate_limit()
-        url = f"{self.BASE_URL}artist/"
-        params = {"query": artist_name, "fmt": "json", "limit": limit}
-        response = requests.get(url, headers=self.HEADERS, params=params)
-        response.raise_for_status()
+        
+        if response.status_code != 200:
+            raise Exception(f"API Error: {response.status_code} - {response.text}")
+
         return response.json()
 
-    def get_artist_releases(self, artist_id, limit=5):
+    def get_place(self, place_id):
         """
-        Get releases (albums) for a specific artist.
+        Get information about a specific place by its MusicBrainz ID.
         """
-        self._rate_limit()
-        url = f"{self.BASE_URL}release/"
-        params = {"artist": artist_id, "fmt": "json", "limit": limit}
-        response = requests.get(url, headers=self.HEADERS, params=params)
-        response.raise_for_status()
-        return response.json()
+        endpoint = f"{self.BASE_URL}/place/{place_id}"
+        params = {"fmt": "json"}  # Return response in JSON format
+        return self._rate_limited_request(endpoint, params)
 
-    def get_recording_details(self, recording_id):
+    def search_place(self, query, limit=10):
         """
-        Get details of a specific recording (track).
+        Search for places matching a query.
         """
-        self._rate_limit()
-        url = f"{self.BASE_URL}recording/{recording_id}"
-        params = {"fmt": "json"}
-        response = requests.get(url, headers=self.HEADERS, params=params)
-        response.raise_for_status()
-        return response.json()
+        endpoint = f"{self.BASE_URL}/place"
+        params = {"query": query, "fmt": "json", "limit": limit}
+        return self._rate_limited_request(endpoint, params)
 
+    def get_work(self, work_id):
+        """
+        Get information about a specific work by its MusicBrainz ID.
+        """
+        endpoint = f"{self.BASE_URL}/work/{work_id}"
+        params = {"fmt": "json"}  # Return response in JSON format
+        return self._rate_limited_request(endpoint, params)
 
-# Example usage
-if __name__ == "__main__":
-    musicbrainz = MusicBrainzAPI()
+    def search_work(self, query, limit=10):
+        """
+        Search for works matching a query.
+        """
+        endpoint = f"{self.BASE_URL}/work"
+        params = {"query": query, "fmt": "json", "limit": limit}
+        return self._rate_limited_request(endpoint, params)
 
-    # Search for an artist
-    artist_name = "Radiohead"
-    artists = musicbrainz.search_artist(artist_name)
-    print("Artists found:")
-    for artist in artists["artists"]:
-        print(f"Name: {artist['name']}, ID: {artist['id']}")
+    def get_recording(self, recording_id):
+        """
+        Get information about a specific recording by its MusicBrainz ID.
+        """
+        endpoint = f"{self.BASE_URL}/recording/{recording_id}"
+        params = {"fmt": "json"}  # Return response in JSON format
+        return self._rate_limited_request(endpoint, params)
 
-    # Get releases for the first artist found
-    if artists["artists"]:
-        artist_id = artists["artists"][0]["id"]
-        releases = musicbrainz.get_artist_releases(artist_id)
-        print("\nReleases:")
-        for release in releases["releases"]:
-            print(f"Title: {release['title']}, Date: {release.get('date', 'Unknown')}")
-
-    # Get details of a specific recording
-    if releases["releases"]:
-        recording_id = releases["releases"][0]["id"]
-        recording_details = musicbrainz.get_recording_details(recording_id)
-        print("\nRecording Details:")
-        print(recording_details)
+    def search_recording(self, query, limit=10):
+        """
+        Search for recordings matching a query.
+        """
+        endpoint = f"{self.BASE_URL}/recording"
+        params = {"query": query, "fmt": "json", "limit": limit}
+        return self._rate_limited_request(endpoint, params)
