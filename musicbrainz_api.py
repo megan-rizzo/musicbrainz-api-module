@@ -88,34 +88,4 @@ class MusicBrainzAPI:
         return df_places
 
 
-    def get_work(self, work_id):
-        """
-        Get information about a specific work by its MusicBrainz ID.
-        """
-        endpoint = f"{self.BASE_URL}/work/{work_id}"
-        params = {"fmt": "json"}  # Return response in JSON format
-        return self._rate_limited_request(endpoint, params)
-
-    def search_work(self, query, limit=10):
-        """
-        Search for works matching a query.
-        """
-        endpoint = f"{self.BASE_URL}/work"
-        params = {"query": query, "fmt": "json", "limit": limit}
-        return self._rate_limited_request(endpoint, params)
-
-    def get_recording(self, recording_id):
-        """
-        Get information about a specific recording by its MusicBrainz ID.
-        """
-        endpoint = f"{self.BASE_URL}/recording/{recording_id}"
-        params = {"fmt": "json"}  # Return response in JSON format
-        return self._rate_limited_request(endpoint, params)
-
-    def search_recording(self, query, limit=10):
-        """
-        Search for recordings matching a query.
-        """
-        endpoint = f"{self.BASE_URL}/recording"
-        params = {"query": query, "fmt": "json", "limit": limit}
-        return self._rate_limited_request(endpoint, params)
+    
