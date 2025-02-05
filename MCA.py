@@ -21,5 +21,12 @@ df_sample = df.sample(1000, random_state=42)  # Reduce dataset size if needed
 # Fit and transform the data (one-hot encoding is handled automatically)
 mca_result = mca.fit_transform(df_sample)
 
-# Display the transformed data
-print(mca_result.head())
+# Get coordinates of categories (how each category contributes to components)
+category_coordinates = mca.column_coordinates(df_sample)
+
+# Display which categories load heavily
+print(category_coordinates)
+
+# Save MCA result and sample data
+df_sample.to_csv("MCA_sampled_data.csv", index=False)
+mca_result.to_csv("MCA_results.csv", index=False)
